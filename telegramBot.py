@@ -10,9 +10,20 @@ from PIL import Image
 import render
 from settings import *
 
-IMAGE="game.jpg"
-MAP = "map.jpg"
-ANIMATION = "animation.gif"
+img = Image.open(TEXTURE)
+img = img.convert("RGB")
+d = img.getdata()
+
+imageRGB = []
+for i in range(img.size[1]):
+    imageRGB.append([])
+
+index = 0
+for item in d:
+    imageRGB[index].append(item)
+    if index == img.size[1]-1:
+        index = 0-1
+    index += 1
 
 imgMap = Image.open(MAP)
 imgMap = imgMap.convert("RGB")
@@ -61,7 +72,7 @@ def showGame(message):
     global playerY
     global playerAngle
     bot.send_message(message.chat.id, "hello")
-    render.render(img, playerAngle, playerX, playerY, SCREENWIDTH, IMAGE, walls)
+    render.render(img, playerAngle, playerX, playerY, SCREENWIDTH, IMAGE, walls, imageRGB=imageRGB)
     bot.send_photo(message.chat.id, open(IMAGE, 'rb'))
     
 @bot.message_handler(commands=["map"])
@@ -76,13 +87,13 @@ def forward(message):
     global playerY
     global playerAngle
     try:
-        render.animationsForward(playerAngle, playerX, playerY, PLAYERANGLESPEED, rectSizeX, rectSizeY, ANIMATION, SCREENWIDTH, walls)
+        render.animationsForward(playerAngle, playerX, playerY, PLAYERANGLESPEED, rectSizeX, rectSizeY, ANIMATION, SCREENWIDTH, walls, imageRGB=imageRGB)
         playerX = int(playerX + rectSizeX * cos(radians(playerAngle)))
         playerY = int(playerY+rectSizeY*sin(radians(playerAngle)))
         bot.send_video(message.chat.id, open(ANIMATION, 'rb'), None)
     except ZeroDivisionError:
         bot.send_message(message.chat.id, "wall")
-    render.render(img, playerAngle, playerX, playerY, SCREENWIDTH, IMAGE, walls)
+    render.render(img, playerAngle, playerX, playerY, SCREENWIDTH, IMAGE, walls, imageRGB=imageRGB)
     bot.send_photo(message.chat.id, open(IMAGE, 'rb'))
     
 @bot.message_handler(commands=["lookRight"])
@@ -90,9 +101,9 @@ def lookRight(message):
     global playerX
     global playerY
     global playerAngle
-    render.animationsRotate(playerAngle, playerX, playerY, 90, PLAYERANGLESPEED, ANIMATION, SCREENWIDTH, walls)
+    render.animationsRotate(playerAngle, playerX, playerY, 90, PLAYERANGLESPEED, ANIMATION, SCREENWIDTH, walls, imageRGB=imageRGB)
     playerAngle += 90
-    render.render(img, playerAngle, playerX, playerY, SCREENWIDTH, IMAGE, walls)
+    render.render(img, playerAngle, playerX, playerY, SCREENWIDTH, IMAGE, walls, imageRGB=imageRGB)
     bot.send_video(message.chat.id, open(ANIMATION, 'rb'))
     bot.send_photo(message.chat.id, open(IMAGE, 'rb'))
     
@@ -101,9 +112,9 @@ def lookLeft(message):
     global playerX
     global playerY
     global playerAngle
-    render.animationsRotate(playerAngle, playerX, playerY, -90, -PLAYERANGLESPEED, ANIMATION, SCREENWIDTH, walls)
+    render.animationsRotate(playerAngle, playerX, playerY, -90, -PLAYERANGLESPEED, ANIMATION, SCREENWIDTH, walls, imageRGB=imageRGB)
     playerAngle -= 90
-    render.render(img, playerAngle, playerX, playerY, SCREENWIDTH, IMAGE, walls)
+    render.render(img, playerAngle, playerX, playerY, SCREENWIDTH, IMAGE, walls, imageRGB=imageRGB)
     bot.send_video(message.chat.id, open(ANIMATION, 'rb'))
     bot.send_photo(message.chat.id, open(IMAGE, 'rb'))
     
