@@ -38,7 +38,7 @@ def renderMap(img, playerAngle, playerX, playerY, MAP, walls):
     img.save(MAP)
 
 
-def render(img, playerAngle, playerX, playerY, SCREENWIDTH, IMAGE, walls):
+def render(img, playerAngle, playerX, playerY, SCREENWIDTH, IMAGE, walls, imageRGB):
     draw = ImageDraw.Draw(img)
     draw.rectangle(xy=(0, 0, img.size[0], img.size[1]),
                    fill=WHITE,
@@ -55,17 +55,31 @@ def render(img, playerAngle, playerX, playerY, SCREENWIDTH, IMAGE, walls):
                     break
             if cx > wall[0] and cx < wall[0] + wall[2] and cy > wall[1] and cy < wall[1] + wall[3]:
                 break
-        col = CWORLD / (c * cos(lineAngle - playerAngle))
-        for h in range(GRAPHUNDETAL):
-            draw.rectangle(xy=(i*GRAPHUNDETAL+h, SCREENWIDTH // 2 - col, i*GRAPHUNDETAL+h, SCREENWIDTH // 2 + col),
-                           fill=BLACK,
-                           outline=BLUE,
-                           width=1)
+
+        col = int(CWORLD/(c*cos(lineAngle-playerAngle)))
+        rectSizeX = WIDTH // gameWidth
+        rectSizeY = HEIGHT // gameHeight
+
+        hitX = (cx-wall[0])/rectSizeX
+        hitY = (cy-wall[1])/rectSizeY
+        if hitX == 0.01 or hitX == 0.99:
+            hit = hitY
+        else:
+            hit = hitX
+        columnRGB = imageRGB[int(hit*len(imageRGB[0]))]
+        for j in range(col*2):
+            pix_y = int(j+SCREENWIDTH//2-col)
+            #print(pix_y)
+            #pygame.draw.line(surface, columnRGB[int(img.size[0]*(j/(col*2)))], (i*GRAPHUNDETAL, pix_y), (i*GRAPHUNDETAL, pix_y), GRAPHUNDETAL)
+            draw.rectangle(xy=(i*GRAPHUNDETAL, pix_y, (i+1)*GRAPHUNDETAL, pix_y),
+                           fill=columnRGB[int(len(imageRGB[0])*(j/(col*2)))],
+                           outline=columnRGB[int(len(imageRGB[0])*(j/(col*2)))],
+                           width=GRAPHUNDETAL)
     playerAngle = degrees(playerAngle)
     img.save(IMAGE)
 
 
-def animationsForward(playerAngle, startplayerX, startplayerY, speed, rectSizeX, rectSizeY, FILE, SCREENWIDTH, walls):
+def animationsForward(playerAngle, startplayerX, startplayerY, speed, rectSizeX, rectSizeY, FILE, SCREENWIDTH, walls, imageRGB):
     animation = []
     playerX = startplayerX
     playerY = startplayerY
@@ -78,34 +92,33 @@ def animationsForward(playerAngle, startplayerX, startplayerY, speed, rectSizeX,
         playerY = int(playerY + speed * sin(radians(playerAngle)))
         animImg = Image.open(FILE)
         animImg = animImg.convert("RGB")
-        render(animImg, playerAngle, playerX, playerY, SCREENWIDTH, FILE, walls)
+        render(animImg, playerAngle, playerX, playerY, SCREENWIDTH, FILE, walls, imageRGB=imageRGB)
         animation.append(animImg)
     for i in range(0, rectSize, speed * 2):
         playerX = int(playerX - speed * 2 * cos(radians(playerAngle)))
         playerY = int(playerY - speed * 2 * sin(radians(playerAngle)))
         animImg = Image.open(FILE)
         animImg = animImg.convert("RGB")
-        render(animImg, playerAngle, playerX, playerY, SCREENWIDTH, FILE, walls)
+        render(animImg, playerAngle, playerX, playerY, SCREENWIDTH, FILE, walls, imageRGB=imageRGB)
         animation.append(animImg)
-    
     animation[0].save(
         FILE, save_all=True, append_images=animation[1:], duration=100
     )
 
 
-def animationsRotate(playerAngle, playerX, playerY, rotateAngle, rotateSpeed, FILE, SCREENWIDTH, walls):
+def animationsRotate(playerAngle, playerX, playerY, rotateAngle, rotateSpeed, FILE, SCREENWIDTH, walls, imageRGB):
     animation = []
     for i in range(0, rotateAngle, rotateSpeed):
         playerAngle += rotateSpeed
         animImg = Image.open(FILE)
         animImg = animImg.convert("RGB")
-        render(animImg, playerAngle, playerX, playerY, SCREENWIDTH, FILE, walls)
+        render(animImg, playerAngle, playerX, playerY, SCREENWIDTH, FILE, walls, imageRGB=imageRGB)
         animation.append(animImg)
     for i in range(0, rotateAngle, rotateSpeed * 3):
         playerAngle -= rotateSpeed * 3
         animImg = Image.open(FILE)
         animImg = animImg.convert("RGB")
-        render(animImg, playerAngle, playerX, playerY, SCREENWIDTH, FILE, walls)
+        render(animImg, playerAngle, playerX, playerY, SCREENWIDTH, FILE, walls, imageRGB=imageRGB)
         animation.append(animImg)
     
     animation[0].save(
